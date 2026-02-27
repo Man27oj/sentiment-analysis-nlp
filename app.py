@@ -15,22 +15,16 @@ st.set_page_config(
 # ---- Load Model ----
 @st.cache_resource
 def load_model():
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-    model = BertForSequenceClassification.from_pretrained(
-        'bert-base-uncased',
-        num_labels=3
-    )
-    return tokenizer, model
+    tokenizer = BertTokenizer.from_pretrained('./saved_bert_model')
+    model = BertForSequenceClassification.from_pretrained('./saved_bert_model')
+    le = LabelEncoder()
+    le.classes_ = np.load('./saved_bert_model/le_classes.npy', allow_pickle=True)
+    device = torch.device('cpu')
+    model.to(device)
+    model.eval()
+    return tokenizer, model, le, device
 
-tokenizer, model = load_model()
-
-# Label encoder
-le = LabelEncoder()
-le.classes_ = np.array(['negative', 'neutral', 'positive'])
-
-device = torch.device('cpu')
-model.to(device)
-model.eval()
+tokenizer, model, le, device = load_model()
 
 # ---- Predict Function ----
 def predict(text):
@@ -51,7 +45,7 @@ def predict(text):
 
 # ---- UI ----
 st.title("💬 Sentiment Analysis App")
-st.markdown("Built with **BERT** | NLP Portfolio Project by Manoj")
+st.markdown("Built with **BERT** | NLP Portfolio Project by Manoj S Annigeri")
 st.divider()
 
 # Single prediction
@@ -63,12 +57,8 @@ if st.button("Analyze Sentiment"):
         st.warning("Please enter some text first!")
     else:
         sentiment, probs = predict(user_input)
-
-        # Color based on sentiment
         color = {"positive": "🟢", "negative": "🔴", "neutral": "🟡"}
         st.markdown(f"### Result: {color[sentiment]} **{sentiment.upper()}**")
-
-        # Confidence bars
         st.divider()
         st.subheader("📊 Confidence Scores")
         col1, col2, col3 = st.columns(3)
@@ -101,4 +91,4 @@ if st.button("Analyze All"):
         st.dataframe(pd.DataFrame(results), use_container_width=True)
 
 st.divider()
-st.caption("🎓 Master's Portfolio Project | Sentiment Analysis NLP Pipeline")
+st.caption("🎓 Master's Portfolio Project | Sentiment Analysis NLP Pipeline | Manoj S Annigeri")
